@@ -25,11 +25,10 @@ const toXml = (feed: {
 </rss>`;
 };
 
-export const serviceFeed = async (
+export const serviceFeed = (
   podcastName: string | undefined,
-): Promise<FeedTransferModel> => {
-  const queryString = podcastName?.split("?p=")[1] || "";
-  const data = await repositoryPodcast(queryString);
+): FeedTransferModel => {
+  const data = repositoryPodcast(podcastName);
 
   if (data.length === 0) {
     return {
@@ -38,7 +37,7 @@ export const serviceFeed = async (
     };
   }
 
-  const feed = buildRssFeed(queryString, data);
+  const feed = buildRssFeed(podcastName ?? "", data);
   const xml = toXml(feed);
 
   return {

@@ -11,6 +11,7 @@ import { Routes } from "./routes/routes";
 import { HttpMethod } from "./utils/http-methods";
 import { login, register } from "./controllers/auth-controller";
 import { authMiddleware } from "./middlewares/auth";
+import { getFeed } from "./controllers/feed-controller";
 
 export const app = async (
   request: http.IncomingMessage,
@@ -68,5 +69,10 @@ export const app = async (
   // loga usuário
   if (request.method === HttpMethod.POST && baseUrl === Routes.LOGIN) {
     await login(request, response);
+  }
+
+  // feed
+  if (request.method === HttpMethod.GET && baseUrl?.startsWith(Routes.FEED)) {
+    await getFeed(request, response);
   }
 };

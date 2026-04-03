@@ -1,4 +1,4 @@
-import { FeedTransferModel } from "../models/feed-transfer-model";
+import { FeedTransferModel } from "../models/rss-feed-transfer-model";
 import { repositoryPodcast } from "../repositories/podcasts-repository";
 import { buildRssFeed } from "../utils/rss-builder";
 import { StatusCode } from "../utils/status-code";

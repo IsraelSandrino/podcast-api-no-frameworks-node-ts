@@ -12,6 +12,13 @@ import { HttpMethod } from "./utils/http-methods";
 import { login, register } from "./controllers/auth-controller";
 import { authMiddleware } from "./middlewares/auth";
 import { getFeed } from "./controllers/feed-controller";
+import { subscribe, unsubscribe } from "diagnostics_channel";
+import {
+  listSubscriptionsPodcast,
+  subscribePodcast,
+  unsubscribePodcast,
+} from "./controllers/subscription-controller";
+import { start } from "repl";
 
 export const app = async (
   request: http.IncomingMessage,
@@ -74,5 +81,32 @@ export const app = async (
   // feed
   if (request.method === HttpMethod.GET && baseUrl?.startsWith(Routes.FEED)) {
     await getFeed(request, response);
+  }
+
+  // subscribe
+  if (
+    request.method === HttpMethod.POST &&
+    baseUrl?.startsWith(Routes.SUBSCRIPTIONS)
+  ) {
+    authMiddleware(request, response, async () => {
+      await subscribePodcast(request, response);
+    });
+  }
+
+  // unsubscribe
+  if (
+    request.method === HttpMethod.DELETE &&
+    baseUrl === Routes.SUBSCRIPTIONS
+  ) {
+    authMiddleware(request, response, async () => {
+      await unsubscribePodcast(request, response);
+    });
+  }
+
+  // return subscriptions
+  if (request.method === HttpMethod.GET && baseUrl === Routes.SUBSCRIPTIONS) {
+    authMiddleware(request, response, async () => {
+      await listSubscriptionsPodcast(request, response);
+    });
   }
 };

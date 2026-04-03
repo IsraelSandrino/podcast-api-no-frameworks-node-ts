@@ -23,7 +23,7 @@ export const repositoryCreateEpisode = (data: PodcastModel): PodcastModel[] => {
     `
     INSERT INTO episodes (podcast_id, title, video_id) VALUES (?, ?, ?)
   `,
-  ).run(data.podcastName, data.episode, data.videoId);
+  ).run(data.podcastName, data.episode, data.video_id);
 
   return [data];
 };
@@ -34,7 +34,7 @@ export const repositoryUpdateEpisode = (data: PodcastModel): PodcastModel[] => {
     `
       UPDATE episodes SET title = ?, video_id = ? WHERE id = ?
     `,
-  ).run(data.episode, data.videoId, data.id);
+  ).run(data.episode, data.video_id, data.id);
 
   return [data];
 };
@@ -60,7 +60,7 @@ export const repositoryPatchEpisode = (
   const columnMap: Record<string, string> = {
     podcastName: "podcast_id",
     episode: "title",
-    videoId: "video_id",
+    video_id: "video_id",
   };
 
   const setClause = fields.map((field) => `${columnMap[field]} = ?`).join(", ");

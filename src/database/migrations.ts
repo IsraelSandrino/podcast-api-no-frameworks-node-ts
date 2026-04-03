@@ -36,5 +36,14 @@ db.exec(`
   email TEXT NOT NULL UNIQUE,
   password_hash TEXT NOT NULL,
   created_at TEXT DEFAULT (datetime('now'))
-);
+  );
+
+  CREATE TABLE IF NOT EXISTS subscriptions (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  user_id INTEGER NOT NULL,
+  podcast_id INTEGER NOT NULL,
+  created_at TEXT DEFAULT (datetime('now')),
+  FOREIGN KEY (user_id) REFERENCES users(id),
+  FOREIGN KEY (podcast_id) REFERENCES podcasts(id)
+  );
 `);

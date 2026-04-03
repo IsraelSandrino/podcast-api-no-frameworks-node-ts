@@ -46,4 +46,13 @@ db.exec(`
   FOREIGN KEY (user_id) REFERENCES users(id),
   FOREIGN KEY (podcast_id) REFERENCES podcasts(id)
   );
+
+  CREATE TABLE IF NOT EXISTS plays (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  episode_id INTEGER NOT NULL,
+  user_id INTEGER,
+  played_at TEXT DEFAULT (datetime('now')),
+  FOREIGN KEY (episode_id) REFERENCES episodes(id),
+  FOREIGN KEY (user_id) REFERENCES users(id)
+  );
 `);

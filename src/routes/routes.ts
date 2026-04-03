@@ -1,4 +1,6 @@
 export enum Routes {
+  ANALYTICS_EPISODE = "/api/analytics/episode/",
+  ANALYTICS_PODCAST = "/api/analytics/podcast/",
   EPISODE = "/api/episode",
   EPISODE_CREATE = "/api/episode",
   EPISODE_DELETE = "/api/episode/",
@@ -7,6 +9,7 @@ export enum Routes {
   FEED = "/api/feed/",
   LIST = "/api/list",
   LOGIN = "/api/auth/login",
+  PLAYS = "/api/plays/",
   REGISTER = "/api/auth/register",
   SUBSCRIPTIONS = "/api/subscriptions/",
   SUBSCRIPTIONS_LIST = "/api/subscriptions",

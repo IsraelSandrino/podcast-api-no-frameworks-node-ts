@@ -1,6 +1,6 @@
 import { IncomingMessage, ServerResponse } from "http";
 import { serviceFeed } from "../services/feed-service";
-import { FeedTransferModel } from "../models/feed-transfer-model";
+import { FeedTransferModel } from "../models/rss-feed-transfer-model";
 import { extractUrlParam } from "../utils/url-params";
 import { Routes } from "../routes/routes";
 

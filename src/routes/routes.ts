@@ -8,4 +8,6 @@ export enum Routes {
   LIST = "/api/list",
   LOGIN = "/api/auth/login",
   REGISTER = "/api/auth/register",
+  SUBSCRIPTIONS = "/api/subscriptions/",
+  SUBSCRIPTIONS_LIST = "/api/subscriptions",
 }

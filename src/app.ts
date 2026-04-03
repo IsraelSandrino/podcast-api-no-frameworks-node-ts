@@ -19,6 +19,11 @@ import {
   unsubscribePodcast,
 } from "./controllers/subscription-controller";
 import { start } from "repl";
+import {
+  getEpisodeAnalytics,
+  getPodcastAnalytics,
+  registerPlay,
+} from "./controllers/analytics-controller";
 
 export const app = async (
   request: http.IncomingMessage,
@@ -107,6 +112,31 @@ export const app = async (
   if (request.method === HttpMethod.GET && baseUrl === Routes.SUBSCRIPTIONS) {
     authMiddleware(request, response, async () => {
       await listSubscriptionsPodcast(request, response);
+    });
+  }
+
+  // register play
+  if (request.method === HttpMethod.POST && baseUrl?.startsWith(Routes.PLAYS)) {
+    await registerPlay(request, response);
+  }
+
+  // episodes analytics
+  if (
+    request.method === HttpMethod.GET &&
+    baseUrl?.startsWith(Routes.ANALYTICS_EPISODE)
+  ) {
+    authMiddleware(request, response, async () => {
+      await getEpisodeAnalytics(request, response);
+    });
+  }
+
+  // podcast analytics
+  if (
+    request.method === HttpMethod.GET &&
+    baseUrl?.startsWith(Routes.ANALYTICS_PODCAST)
+  ) {
+    authMiddleware(request, response, async () => {
+      await getPodcastAnalytics(request, response);
     });
   }
 };

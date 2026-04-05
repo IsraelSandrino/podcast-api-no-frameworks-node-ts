@@ -1,8 +1,8 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-import { serviceListEpisodes } from "../list-episodes-service";
-import * as repository from "../../repositories/podcasts-repository";
-import { StatusCode } from "../../utils/status-code";
+import { serviceListEpisodes } from "../episodes.service";
+import * as repository from "../episodes.repository";
+import { StatusCode } from "../../../utils/status-code";
 
 describe("list-episodes-service", () => {
   beforeEach(() => {
@@ -14,19 +14,17 @@ describe("list-episodes-service", () => {
       const episodesMock = [
         {
           id: 1,
-          podcastName: "Flow Podcast",
-          episode: "ROBINSON FARINAZZO [ARTE DA GUERRA] - Flow #581",
+          podcast_id: 10,
+          title: "ROBINSON FARINAZZO [ARTE DA GUERRA] - Flow #581",
           video_id: "we9abjZyjo8",
-          categories: ["guerra", "conhecimento", "história"],
-          date: "2024-04-03",
+          created_at: "2024-04-03",
         },
         {
           id: 2,
-          podcastName: "Flow Podcast",
-          episode: "DJ ARMIN VAN BUUREN - Flow #577",
+          podcast_id: 10,
+          title: "DJ ARMIN VAN BUUREN - Flow #577",
           video_id: "C4aE2_RcLCo",
-          categories: ["música", "entreterimento"],
-          date: "2025-02-01",
+          created_at: "2025-02-01",
         },
       ];
 

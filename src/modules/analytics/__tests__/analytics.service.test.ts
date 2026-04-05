@@ -4,9 +4,9 @@ import {
   serviceEpisodeAnalytics,
   servicePodcastAnalytics,
   serviceRegisterPlay,
-} from "../analytics-service";
-import * as repository from "../../repositories/analytics-repository";
-import { StatusCode } from "../../utils/status-code";
+} from "../analytics.service";
+import * as repository from "../analytics.repository";
+import { StatusCode } from "../../../utils/status-code";
 
 describe("analytics-service", () => {
   beforeEach(() => {

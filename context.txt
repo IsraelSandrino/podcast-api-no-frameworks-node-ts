@@ -1,0 +1,183 @@
+Backlog Técnico
+O projeto já começou a caminhar para uma arquitetura melhor, mas hoje ele está em um estado intermediário: existem peças novas de infraestrutura, porém elas ainda não governam a aplicação. Para um dev júnior, o ponto mais importante é seguir a ordem certa, porque vários arquivos dependem diretamente uns dos outros.
+
+Mapa de dependências que o júnior precisa entender antes de mexer:
+	- app.ts é o orquestrador atual. Ele depende de routes.ts, dos controllers e do auth.ts.
+	- route-definition.ts hoje importa controllers diretamente. Isso é aceitável, mas só faz sentido se route-matcher.ts e register-routes.ts passarem a ser a nova entrada de roteamento.
+	- podcasts-controller.ts ainda depende de constantes antigas do enum de rotas. Hoje isso já é um risco de quebra de compilação.
+	- auth-controller.ts, analytics-controller.ts e subscription-controller.ts devem passar a depender dos helpers HTTP em send-json.ts, send-no-content.ts e with-error-handler.ts.
+	- auth.ts depende do contrato em authenticated-request.ts. Esse contrato precisa ser adotado pelos controllers protegidos.
+	- podcasts-repository.ts, feed-service.ts e rss-builder.ts compartilham o mesmo problema de contrato de episódio. Eles precisam ser corrigidos juntos.
+
+# P1: estabilizar a aplicação e eliminar quebra funcional
+1. P1 Integrar o novo roteamento sem quebrar os endpoints.
+Checklist por arquivo:
+	OK - routes.ts: validar todos os paths oficiais; manter só nomes finais (EPISODE, EPISODE_BY_ID, SUBSCRIPTIONS, SUBSCRIPTION_BY_PODCAST).
+	OK - route-definition.ts: transformar interface em export interface; cadastrar todas as rotas atuais; evitar rota parcial esquecida.
+	OK - route-matcher.ts: implementar casamento por method, path e segmentos dinâmicos; retornar handler, requiresAuth e params.
+	OK - register-routes.ts: conectar route-matcher, authMiddleware e withErrorHandler.
+	OK - app.ts: remover if em cascata e delegar tudo para register-routes.
+	OK - subscription-controller.ts: trocar Routes.SUBSCRIPTIONS por Routes.SUBSCRIPTION_BY_PODCAST na extração do parâmetro.
+	OK - podcasts-controller.ts: substituir EPISODE_UPDATE, EPISODE_DELETE, EPISODE_PATCH por EPISODE_BY_ID.
+Critério de pronto:
+	OK - nenhum controller depende de constante removida;
+	OK - app.ts não contém mais roteamento manual.
+
+2. P1 Padronizar resposta HTTP e tratamento de erro.
+Checklist por arquivo:
+	OK - send-json.ts: manter como helper padrão para JSON.
+	OK - send-no-content.ts: usar em 204.
+	OK - with-error-handler.ts: aceitar handler síncrono ou assíncrono; tratar INVALID_JSON como 400; manter AppError como erro de domínio.
+	OK - app-error.ts: manter como base de erro funcional.
+	OK - auth-controller.ts: usar sendJson; não serializar body bruto.
+	OK - subscription-controller.ts: usar sendJson e sendNoContent; hoje ele manda body até em 204.
+	OK - analytics-controller.ts: serializar content.body corretamente no registerPlay.
+Critério de pronto:
+	OK - controller não chama mais writeHead/write/end manualmente em toda função;
+	OK - erro de JSON inválido vira 400.
+	
+3. P1 Fechar segurança mínima de autenticação.
+Checklist por arquivo:
+	OK - auth.ts: corrigir defaulContent; validar ausência de SECRET; manter comentário do motivo do AuthenticatedRequest.
+	OK - authenticated-request.ts: manter como contrato único do request autenticado.
+	OK - auth-service.ts: remover fallback " " do SECRET; lançar erro explícito se não existir segredo configurado.
+	OK - analytics-controller.ts: manter user?.id ?? null, porque registerPlay aceita usuário anônimo.
+Critério de pronto:
+	OK - nenhum token é assinado com segredo fallback;
+	OK - nenhum controller protegido usa any para user.
+
+# P2: corrigir contratos e regras de negócio
+1. P2 Reorganizar o contrato de episódios.
+Checklist por arquivo:
+	OK - podcast-model.ts: dividir em tipo de banco e tipo de entrada/saída.
+	OK - podcast-transfer-model.ts: alinhar com o novo DTO.
+	OK - podcasts-repository.ts: parar de usar PodcastModel como se fosse linha da tabela; corrigir podcast_id, title, video_id.
+	OK - feed-service.ts e rss-builder.ts: validar se o feed usa o mesmo contrato final do episódio.
+Critério de pronto:
+	OK - repositório fala linguagem do banco;
+	OK - controller e service falam linguagem de DTO.
+	
+2. P2 Validar negócio em auth e subscriptions.
+Checklist por arquivo:
+	OK - users-repository.ts: remover any; criar tipo de retorno real.
+	OK - auth-service.ts: validar email duplicado antes de criar usuário.
+	OK - subscriptions-repository.ts: criar método para buscar inscrição existente.
+	OK - subscription-service.ts: impedir duplicidade; tratar unsubscribe inexistente.
+Critério de pronto:
+	OK - duplicidade não depende de erro implícito do banco;
+	OK - services devolvem regra de domínio clara.
+	
+3. P2 Fortalecer parsing e params.
+Checklist por arquivo:
+	OK - body-parser.ts: manter genérico; documentar retorno de body vazio.
+	OK - url-params.ts: deixar de ser dependência principal do roteamento após route-matcher; manter apenas para legado temporário ou remover.
+Critério de pronto:
+	OK - extração de parâmetro não depende mais de split manual nos controllers novos.
+	
+# P3: organização final e legibilidade
+1. P3 Consolidar comentários úteis.
+Checklist por arquivo:
+	OK - auth.ts: manter comentário da injeção do usuário.
+	OK - podcasts-repository.ts: comentar o columnMap.
+	OK - route-definition.ts: comentar que a tabela centraliza contrato de rota.
+	OK - with-error-handler.ts: comentar que ele converte erro técnico em resposta HTTP controlada.
+	OK - body-parser.ts: comentar que JSON inválido sobe para o handler central.
+Critério de pronto:
+	OK - comentários só existem onde explicam decisão, não sintaxe.
+
+2. P3 Estrutura final alvo.
+Checklist por arquivo:
+	OK - types/: contratos de request movidos para authenticated-request.ts e routed-request.ts.
+	OK - modules/analytics: criada estrutura (controller/service/repository/types) com arquivos de transição.
+	OK - modules/auth: criada estrutura (controller/service/repository/types) com arquivos de transição.
+	OK - modules/episodes: criada estrutura (controller/service/repository/types) com agregação dos serviços atuais.
+	OK - modules/feed: criada estrutura (controller/service/types) com arquivos de transição.
+	OK - modules/subscriptions: criada estrutura (controller/service/repository/types) com arquivos de transição.
+Critério de pronto:
+	OK - árvore alvo de pastas existe sem quebrar execução atual.
+	OK - migração foi incremental (sem ruptura de imports legados nesta etapa).
+	OK - rota central (route-definition.ts) já consome controllers via modules/*.
+	OK - controllers e services principais já consomem modules/* como ponto de entrada de contexto.
+	OK - testes de services passaram a apontar para repositories via modules/*.
+	OK - contexto auth migrado fisicamente para modules/auth (controller/service/repository), com arquivos legados como compatibilidade.
+	OK - contexto subscriptions migrado fisicamente para modules/subscriptions (controller/service/repository), com arquivos legados como compatibilidade.
+	OK - contexto analytics migrado fisicamente para modules/analytics (controller/service/repository), com arquivos legados como compatibilidade.
+	OK - contexto feed migrado fisicamente para modules/feed (controller/service), com arquivos legados como compatibilidade.
+	OK - contexto episodes migrado fisicamente para modules/episodes (controller/service/repository), com arquivos legados como compatibilidade.
+	OK - pontes legadas removidas (pastas controllers/, services/ e repositories/ fora de modules não são mais dependência da aplicação).
+	OK - seed passou a consumir src/database/podcasts.json.
+	OK - testes reorganizados por contexto em src/modules/**/__tests__.
+	OK - pasta models removida; contratos agora vivem em modules/*/*.types.
+	OK - pasta middlewares removida; auth middleware agora vive em modules/auth/auth.middleware.ts.
+
+app.ts
+  server.ts
+  modules/
+    analytics/
+      analytics.controller.ts: camada HTTP de analytics
+      analytics.service.ts: regras de negócio de analytics
+      analytics.repository.ts: acesso ao banco de analytics
+      analytics.types.ts: tipos locais do contexto de analytics
+    auth/
+      auth.controller.ts: camada HTTP de autenticação
+      auth.middleware.ts: valida token JWT e injeta usuário autenticado no request
+      auth.service.ts: regras de login e registro
+      auth.repository.ts: acesso ao banco de usuários
+      auth.types.ts: tipos locais de auth
+    episodes/
+      episodes.controller.ts: camada HTTP de episódios
+      episodes.service.ts: regras de listagem, criação, update, delete e patch
+      episodes.repository.ts: persistência de episódios
+      episodes.types.ts: tipos locais de episódio
+    feed/
+      feed.controller.ts: camada HTTP do feed
+      feed.service.ts: regra de geração do feed
+      feed.types.ts: tipos locais do feed
+    subscriptions/
+      subscriptions.controller.ts: camada HTTP de subscriptions
+      subscriptions.service.ts: regras de subscribe/unsubscribe/listagem
+      subscriptions.repository.ts: persistência de subscriptions
+      subscriptions.types.ts: tipos locais de subscriptions
+  routes/
+    routes.ts: catálogo central de paths
+    route-definition.ts: declaração das rotas
+    route-matcher.ts: casamento entre request e rota
+    register-routes.ts: execução da rota com auth e tratamento de erro
+  shared/
+    errors/
+      app-error.ts: erro de domínio da aplicação
+    http/
+      send-json.ts: resposta JSON padronizada
+      send-no-content.ts: resposta 204 padronizada
+      with-error-handler.ts: conversão de exceções em resposta HTTP
+  database/
+    connection.ts: conexão com banco
+    migrations.ts: criação estrutural das tabelas
+    seed.ts: massa inicial
+  types/
+    authenticated-request.ts: request autenticado
+    routed-request.ts: request com params de rota
+  utils/
+    body-parser.ts: parser de body
+    content-type.ts: content types
+    http-methods.ts: métodos HTTP
+    status-code.ts: status HTTP
+  
+Observação para o júnior:
+	- Não mover tudo para modules/ agora.
+	- Primeiro estabiliza a aplicação atual.
+	- Depois, se a base estiver verde, a próxima refatoração pode ser por contexto.
+	
+Sequência exata para execução pelo júnior:
+1. Fechar enum e corrigir dependências quebradas de rota.
+2. Implementar route-matcher e register-routes.
+3. Trocar app.ts para usar a nova infraestrutura.
+4. Padronizar responses com sendJson/sendNoContent/withErrorHandler.
+5. Ajustar auth e request autenticado.
+6. Corrigir contrato de episódios.
+7. Validar regras de domínio em auth e subscriptions.
+5. Limpar comentários e remover legado sobrando.
+
+Risco que o júnior não pode ignorar:
+	- Se ele mexer em routes.ts sem revisar app.ts, podcasts-controller.ts e subscription-controller.ts, ele vai criar quebra em cascata.
+	- Se ele corrigir controller sem alinhar service e repository, a tipagem continua falsa e o bug só muda de lugar.

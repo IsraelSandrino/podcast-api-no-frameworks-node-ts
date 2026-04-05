@@ -4,9 +4,9 @@ import {
   serviceListSubscriptions,
   serviceSubscribe,
   serviceUnsubscribe,
-} from "../subscription-service";
-import * as repository from "../../repositories/subscriptions-repository";
-import { StatusCode } from "../../utils/status-code";
+} from "../subscriptions.service";
+import * as repository from "../subscriptions.repository";
+import { StatusCode } from "../../../utils/status-code";
 
 describe("subscription-service", () => {
   beforeEach(() => {
@@ -22,6 +22,10 @@ describe("subscription-service", () => {
         created_at: "2023-01-07T10:00:00.000Z",
       };
 
+      vi.spyOn(repository, "repositoryFindSubscription").mockReturnValue(
+        undefined,
+      );
+
       const repositorySpy = vi
         .spyOn(repository, "repositorySubscribe")
         .mockReturnValue(subscriptionMock as any);
@@ -34,10 +38,30 @@ describe("subscription-service", () => {
         body: subscriptionMock,
       });
     });
+
+    it("deve lançar erro quando o usuário já estiver inscrito", () => {
+      vi.spyOn(repository, "repositoryFindSubscription").mockReturnValue({
+        id: 1,
+        user_id: 1,
+        podcast_id: 1,
+        created_at: "2023-01-07T10:00:00.000Z",
+      });
+
+      expect(() => serviceSubscribe(1, 1)).toThrowError(
+        "Usuário já inscrito neste podcast",
+      );
+    });
   });
 
   describe("serviceUnsubscribe", () => {
     it("deve retornar status 204 sem conteúdo", () => {
+      vi.spyOn(repository, "repositoryFindSubscription").mockReturnValue({
+        id: 1,
+        user_id: 1,
+        podcast_id: 1,
+        created_at: "2023-01-07T10:00:00.000Z",
+      });
+
       const repositorySpy = vi
         .spyOn(repository, "repositoryUnsubscribe")
         .mockReturnValue();
@@ -49,6 +73,16 @@ describe("subscription-service", () => {
         statusCode: StatusCode.NO_CONTENT,
         body: [],
       });
+    });
+
+    it("deve lançar erro quando a inscrição não existir", () => {
+      vi.spyOn(repository, "repositoryFindSubscription").mockReturnValue(
+        undefined,
+      );
+
+      expect(() => serviceUnsubscribe(1, 1)).toThrowError(
+        "Inscrição não encontrada",
+      );
     });
   });
 

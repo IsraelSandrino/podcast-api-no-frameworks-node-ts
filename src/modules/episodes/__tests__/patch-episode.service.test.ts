@@ -1,8 +1,8 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-import { servicePatchEpisode } from "../patch-episode-service";
-import * as repository from "../../repositories/podcasts-repository";
-import { StatusCode } from "../../utils/status-code";
+import { servicePatchEpisode } from "../episodes.service";
+import * as repository from "../episodes.repository";
+import { StatusCode } from "../../../utils/status-code";
 
 describe("patch-episode-service", () => {
   beforeEach(() => {
@@ -12,8 +12,7 @@ describe("patch-episode-service", () => {
   describe("servicePatchEpisode", () => {
     it("deve retornar status 200 sem conteúdo", () => {
       const partialEpisodeMock = {
-        podcastName: "Flow Podcast",
-        episode: "ROBINSON FARINAZZO [ARTE DA GUERRA] - Flow #581",
+        title: "ROBINSON FARINAZZO [ARTE DA GUERRA] - Flow #581",
       };
 
       const repositorySpy = vi

@@ -1,8 +1,8 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-import { serviceFeed } from "../feed-service";
-import * as repository from "../../repositories/podcasts-repository";
-import { StatusCode } from "../../utils/status-code";
+import { serviceFeed } from "../feed.service";
+import * as repository from "../../episodes/episodes.repository";
+import { StatusCode } from "../../../utils/status-code";
 
 describe("feed-service", () => {
   beforeEach(() => {
@@ -15,8 +15,8 @@ describe("feed-service", () => {
         {
           id: 1,
           podcastName: "Venus Podcast",
-          episode: "Episodio 1",
-          videoId: "abc123",
+          title: "Episodio 1",
+          video_id: "abc123",
           date: "2023-01-07",
         },
       ];

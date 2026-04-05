@@ -1,8 +1,8 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-import { serviceDeleteEpisode } from "../delete-episode-service";
-import * as repository from "../../repositories/podcasts-repository";
-import { StatusCode } from "../../utils/status-code";
+import { serviceDeleteEpisode } from "../episodes.service";
+import * as repository from "../episodes.repository";
+import { StatusCode } from "../../../utils/status-code";
 
 describe("delete-episode-service", () => {
   beforeEach(() => {

@@ -1,4 +1,3 @@
-// src/database/migrations.ts
 import { db } from "./connection";
 
 db.exec(`

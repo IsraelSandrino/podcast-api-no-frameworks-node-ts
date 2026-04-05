@@ -2,19 +2,24 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 
-import { serviceLogin, serviceRegister } from "../auth-service";
-import * as repository from "../../repositories/users-repository";
+import { serviceLogin, serviceRegister } from "../auth.service";
+import * as repository from "../auth.repository";
 
 describe("auth-service", () => {
+  const originalSecret = process.env.SECRET;
+
   beforeEach(() => {
     vi.restoreAllMocks();
+    process.env.SECRET = originalSecret;
   });
 
   describe("serviceRegister", () => {
     it("deve gerar o hash da senha e salvar o usuário no repositório", () => {
-      const hashSpy = vi
-        .spyOn(bcrypt, "hashSync")
-        .mockReturnValue("senha_hash");
+      const hashSpy = vi.spyOn(bcrypt, "hashSync").mockReturnValue("senha_hash");
+
+      vi.spyOn(repository, "repositoryFindUserByEmail").mockReturnValue(
+        undefined,
+      );
 
       const repositorySpy = vi
         .spyOn(repository, "repositoryCreateUser")
@@ -32,7 +37,26 @@ describe("auth-service", () => {
         "usuario_teste@gmail.com",
         "senha_hash",
       );
-      expect(result).toBeUndefined();
+      expect(result).toEqual({
+        message: "Usuário registrado com sucesso!",
+      });
+    });
+
+    it("deve lançar erro quando o email já estiver cadastrado", () => {
+      vi.spyOn(repository, "repositoryFindUserByEmail").mockReturnValue({
+        id: 1,
+        name: "Usuario Teste",
+        email: "usuario_teste@gmail.com",
+        password_hash: "senha_hash",
+      });
+
+      expect(() =>
+        serviceRegister(
+          "Usuario Teste",
+          "usuario_teste@gmail.com",
+          "senha_teste",
+        ),
+      ).toThrowError("Email já cadastrado");
     });
   });
 
@@ -40,7 +64,7 @@ describe("auth-service", () => {
     it("deve retornar null  quand o usuário não existir", () => {
       const repositorySpy = vi
         .spyOn(repository, "repositoryFindUserByEmail")
-        .mockReturnValue(null);
+        .mockReturnValue(undefined);
 
       const compareSpy = vi.spyOn(bcrypt, "compareSync").mockReturnValue(false);
 
@@ -75,6 +99,8 @@ describe("auth-service", () => {
     });
 
     it("deve retornar um token JWT quando email e senha estiverem corretos", () => {
+      process.env.SECRET = "test-secret";
+
       const userMock = {
         id: 1,
         name: "Usuario Teste",
@@ -94,7 +120,7 @@ describe("auth-service", () => {
 
       expect(jwtSpy).toHaveBeenCalledWith(
         { id: 1, email: "usuario_teste@gmail.com" },
-        " ",
+        "test-secret",
         { expiresIn: "1d" },
       );
 

@@ -1,5 +1,5 @@
-import { db } from "../database/connection";
-import { SubscriptionModel } from "../models/subscription-model";
+import { db } from "../../database/connection";
+import { SubscriptionModel } from "./subscriptions.types";
 
 export const repositorySubscribe = (
   user_id: number,
@@ -26,8 +26,6 @@ export const repositoryUnsubscribe = (
   `,
   ).run(user_id, podcast_id);
 };
-
-// Retorna todos os podcasts que o usuário segue
 export const repositoryListSubscriptions = (
   user_id: number,
 ): SubscriptionModel[] => {
@@ -38,4 +36,12 @@ export const repositoryListSubscriptions = (
   `,
     )
     .all(user_id) as SubscriptionModel[];
+};
+export const repositoryFindSubscription = (
+  user_id: number,
+  podcast_id: number,
+): SubscriptionModel | undefined => {
+  return db
+    .prepare("SELECT * FROM subscriptions WHERE user_id = ? AND podcast_id = ?")
+    .get(user_id, podcast_id) as SubscriptionModel | undefined;
 };

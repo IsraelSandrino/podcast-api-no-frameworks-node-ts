@@ -1,7 +1,8 @@
-import { FeedTransferModel } from "../models/rss-feed-transfer-model";
-import { repositoryPodcast } from "../repositories/podcasts-repository";
-import { buildRssFeed } from "../utils/rss-builder";
-import { StatusCode } from "../utils/status-code";
+import { repositoryPodcast } from "../episodes/episodes.repository";
+import { EpisodeOutput } from "../episodes/episodes.types";
+import { buildRssFeed } from "../../utils/rss-builder";
+import { StatusCode } from "../../utils/status-code";
+import { FeedTransferModel } from "./feed.types";
 
 const toXml = (feed: {
   title: string;
@@ -37,7 +38,15 @@ export const serviceFeed = (
     };
   }
 
-  const feed = buildRssFeed(podcastName ?? "", data);
+  const episodeOutput: EpisodeOutput[] = data.map((episode) => ({
+    id: episode.id,
+    podcast_id: episode.podcast_id,
+    title: episode.title,
+    video_id: episode.video_id,
+    created_at: episode.created_at,
+  }));
+
+  const feed = buildRssFeed(podcastName ?? "", episodeOutput);
   const xml = toXml(feed);
 
   return {

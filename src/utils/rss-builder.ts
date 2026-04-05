@@ -1,16 +1,14 @@
-import { PodcastModel } from "../models/podcast-model";
-
-import { RssFeed } from "../models/rss-feed-model";
-import { RssItem } from "../models/rss-item-model";
+import { EpisodeOutput } from "../modules/episodes/episodes.types";
+import { RssFeed, RssItem } from "../modules/feed/feed.types";
 
 export function buildRssFeed(
   podcastName: string,
-  episodes: PodcastModel[],
+  episodes: EpisodeOutput[],
 ): RssFeed {
-  const items: RssItem[] = episodes.map((ep) => ({
-    title: ep.episode,
-    url: `https://www.youtube.com/watch?v=${ep.videoId}`,
-    date: ep.date,
+  const items: RssItem[] = episodes.map((episode) => ({
+    title: episode.title,
+    url: `https://www.youtube.com/watch?v=${episode.video_id}`,
+    date: episode.created_at ?? episode.date ?? "",
   }));
 
   return {

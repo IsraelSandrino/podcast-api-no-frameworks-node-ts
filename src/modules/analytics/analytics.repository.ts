@@ -1,5 +1,5 @@
-import { db } from "../database/connection";
-import { PlayModel } from "../models/play-model";
+import { db } from "../../database/connection";
+import { PlayModel } from "./analytics.types";
 
 export const repositoryRegisterPlay = (
   user_id?: number,
@@ -22,7 +22,6 @@ export const repositoryRegisterPlay = (
 export const repositoryEpisodeAnalytics = (episode_id: number): object[] => {
   const query = `
     WITH RECURSIVE dias_recentes(data) AS (
-      -- Gera as datas dos últimos 7 dias
       SELECT date('now', '-6 days')
       UNION ALL
       SELECT date(data, '+1 day') FROM dias_recentes WHERE data < date('now')
@@ -45,14 +44,11 @@ export const repositoryPodcastAnalytics = (
 ): object | undefined => {
   const query = `
       SELECT 
-      -- 1. Total de Plays do Podcast
       (SELECT COUNT(pl.id) 
        FROM plays pl
        JOIN episodes e ON pl.episode_id = e.id
        JOIN podcasts p ON e.podcast_id = p.id
        WHERE p.name = :name) AS total_plays,
-
-      -- 2. Nome do Episódio mais assistido
       (SELECT e.title 
        FROM episodes e
        JOIN podcasts p ON e.podcast_id = p.id
@@ -61,10 +57,6 @@ export const repositoryPodcastAnalytics = (
        GROUP BY e.id
        ORDER BY COUNT(pl.id) DESC
        LIMIT 1) AS top_episode,
-
-      -- 3. Plays por semana (Retornado como um JSON ou string agrupada)
-      -- Nota: Em repositórios, muitas vezes é melhor rodar esta parte em uma query separada
-      -- mas aqui ela retornará o dado da semana atual ou formatado.
       (SELECT COUNT(pl.id) || ' plays nesta semana'
        FROM plays pl
        JOIN episodes e ON pl.episode_id = e.id

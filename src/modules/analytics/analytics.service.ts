@@ -1,10 +1,10 @@
-import { AnalyticsTransferModel } from "../models/analytics-transfer-model";
+import { AnalyticsTransferModel } from "./analytics.types";
 import {
   repositoryEpisodeAnalytics,
   repositoryPodcastAnalytics,
   repositoryRegisterPlay,
-} from "../repositories/analytics-repository";
-import { StatusCode } from "../utils/status-code";
+} from "./analytics.repository";
+import { StatusCode } from "../../utils/status-code";
 
 export const serviceRegisterPlay = (
   episode_id: number,

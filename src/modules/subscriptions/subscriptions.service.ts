@@ -1,15 +1,23 @@
-import { SubscriptionTransferModel } from "../models/subscription-transfer-model";
+import { AppError } from "../../shared/errors/app-error";
+import { SubscriptionTransferModel } from "./subscriptions.types";
 import {
+  repositoryFindSubscription,
   repositoryListSubscriptions,
   repositorySubscribe,
   repositoryUnsubscribe,
-} from "../repositories/subscriptions-repository";
-import { StatusCode } from "../utils/status-code";
+} from "./subscriptions.repository";
+import { StatusCode } from "../../utils/status-code";
 
 export const serviceSubscribe = (
   user_id: number,
   podcast_id: number,
 ): SubscriptionTransferModel => {
+  const existingSubscription = repositoryFindSubscription(user_id, podcast_id);
+
+  if (existingSubscription) {
+    throw new AppError("Usuário já inscrito neste podcast", StatusCode.CONFLICT);
+  }
+
   const result = repositorySubscribe(user_id, podcast_id);
 
   return {
@@ -22,6 +30,12 @@ export const serviceUnsubscribe = (
   user_id: number,
   podcast_id: number,
 ): SubscriptionTransferModel => {
+  const existingSubscription = repositoryFindSubscription(user_id, podcast_id);
+
+  if (!existingSubscription) {
+    throw new AppError("Inscrição não encontrada", StatusCode.NOT_FOUND);
+  }
+
   repositoryUnsubscribe(user_id, podcast_id);
 
   return {

@@ -1,5 +1,5 @@
 import { db } from "./connection";
-import data from "../repositories/podcasts.json";
+import data from "./podcasts.json";
 
 const insertPodcast = db.prepare(
   "INSERT OR IGNORE INTO podcasts (name) VALUES (?)",
@@ -16,7 +16,7 @@ for (const item of data) {
     .prepare("SELECT id FROM podcasts WHERE name = ?")
     .get(item.podcastName) as { id: number };
 
-  insertEpisode.run(podcast.id, item.podcastName, item.videoId);
+  insertEpisode.run(podcast.id, item.episode, item.videoId);
 }
 
 console.log("Dados inseridos com sucesso!");

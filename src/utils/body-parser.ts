@@ -1,6 +1,6 @@
 import { IncomingMessage } from "node:http";
 
-export const bodyParser = (request: IncomingMessage): Promise<any> => {
+export const bodyParser = async <T>(request: IncomingMessage): Promise<T> => {
   return new Promise((resolve, reject) => {
     let body = "";
 
@@ -9,10 +9,17 @@ export const bodyParser = (request: IncomingMessage): Promise<any> => {
     });
 
     request.on("end", () => {
+      // Decisão de contrato: requests sem body retornam objeto vazio para manter handlers com payload opcional.
+      if (!body.trim()) {
+        resolve({} as T);
+        return;
+      }
+
       try {
-        resolve(JSON.parse(body));
-      } catch (error) {
-        reject(error);
+        resolve(JSON.parse(body) as T);
+      } catch {
+        // JSON invalido e propagado para o handler central (withErrorHandler), que converte para HTTP 400.
+        reject(new Error("INVALID_JSON"));
       }
     });
 
